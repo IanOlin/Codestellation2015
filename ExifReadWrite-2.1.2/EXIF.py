@@ -94,7 +94,7 @@ def main1():
         except IOError:
             logger.error("'%s' is unreadable", filename)
             continue
-        logger.info("Opening: %s", filename)
+        #logger.info("Opening: %s", filename)
 
         tag_start = timeit.default_timer()
 
@@ -112,117 +112,111 @@ def main1():
             continue
 
         if 'JPEGThumbnail' in data:
-            logger.info('File has JPEG thumbnail')
+            #logger.info('File has JPEG thumbnail')
             del data['JPEGThumbnail']
         if 'TIFFThumbnail' in data:
             logger.info('File has TIFF thumbnail')
             del data['TIFFThumbnail']
 
-        tag_keys = list(data.keys())
+        tag_keys = (data.keys())
         tag_keys.sort()
 
-        for i in tag_keys:
-            try:
-                logger.info('%s (%s): %s', i, FIELD_TYPES[data[i].field_type][2], data[i].printable)
-            except:
-                logger.error("%s : %s", i, str(data[i]))
+        #for i in tag_keys:
+        #    try:
+        #        logger.info('%s (%s): %s', i, FIELD_TYPES[data[i].field_type][2], data[i].printable)
+        #    except:
+        #        logger.error("%s : %s", i, str(data[i]))
 
         file_stop = timeit.default_timer()
 
         logger.debug("Tags processed in %s seconds", tag_stop - tag_start)
         logger.debug("File processed in %s seconds", file_stop - file_start)
-        print("")
+        #print("")
 
         coords.append((data['GPS GPSLatitude'], data['GPS GPSLongitude']))
-        print coords
 
 
     #The minimum and maximum coordinates
-    list xmin
-    list xmax
-    list ymin
-    list ymax
-    list xdist
-    list ydist
-    list xcenter
-    list ycenter
-    list xcoords
-    list ycoords
+    xdist = []
+    ydist = []
+    xcenter = []
+    ycenter = []
+    xcoords = []
+    ycoords = []
 
-    #each element of coords is separated into separate lists of longitude and latitudes
+    #each element of coords is separated into separate s of longitude and latitudes
     for elements in coords:
         tempcoords = elements
-        xcoords.append(tempcoords(0))
-        ycoords.append(tempcoords(1))
+        #print tempcoords
+        #print type(elements[0])
+        xcoords.append(tempcoords[0])
+        ycoords.append(tempcoords[1])
+        print tempcoords[0]
+
+    def ratioVal(x):
+        return float(x.num)/x.den
+
+    def minima(coordArr):
+        ymin = coordArr[0].values
+        for min_y_element in coordArr:
+            min_y_elements = min_y_element.values
+            if ratioVal(min_y_elements[0]) < ratioVal(ymin[0]):
+                ymin = min_y_elements
+            elif ratioVal(min_y_elements[0]) == ratioVal(ymin[0]):
+                if ratioVal(min_y_elements[1]) < ratioVal(ymin[1]):
+                    ymin = min_y_elements
+                elif ratioVal(min_y_elements[1]) == ratioVal(ymin[1]):
+                    if ratioVal(min_y_elements[2]) < ratioVal(ymin[2]):
+                        ymin = min_y_elements
+        return ymin
+
+
+    def maxima(coordArr):
+        xmax = coordArr[0].values
+        for max_x_element in coordArr:
+            max_x_elements = max_x_element.values
+            if ratioVal(max_x_elements[0]) > ratioVal(xmax[0]):
+                xmax = max_x_elements
+            elif ratioVal(max_x_elements[0]) == ratioVal(xmax[0]):
+                if ratioVal(max_x_elements[1]) > ratioVal(xmax[1]):
+                    xmax = max_x_elements
+                elif ratioVal(max_x_elements[1]) == ratioVal(xmax[1]):
+                    if ratioVal(max_x_elements[2]) > ratioVal(xmax[2]):
+                        xmax =  max_x_elements
+        return xmax
 
     #arbitrary assignments for for loop sorting
-    xmin = xcoords(0)
-    xmax = xcoords(0)
-    ymin = ycoords(0)
-    ymin = ycoords(0)
-
-    #finding the minimum and maximum by for looping through due to how the coordinates are lists.
-    #Max X  
-    for max_x_elements in xcoords:
-        if max_x_elements(0) > xmax(0)
-            max_x_elements = xmax
-        elif max_x_elements(0) == xmax(0)
-            if max_x_elements(1) > xmax(1)
-                max_x_elements = xmax
-            elif max_x_elements(1) == xmax(1)
-                if max_x_elements(2) > xmax(2)
-                    max_x_elements = xmax
-    #Min X  
-    for min_x_elements in xcoords:
-        if min_x_elements(0) < xmin(0)
-            min_x_elements = xmin
-        elif min_x_elements(0) == xmin(0)
-            if min_x_elements(1) > xmin(1)
-                min_x_elements = xmin
-            elif min_x_elements(1) == xmin(1)
-                if min_x_elements(2) > xmin(2)
-                    min_x_elements = xmin
-
-     #Max Y  
-    for max_y_elements in ycoords:
-        if max_y_elements(0) > ymax(0)
-            max_y_elements = ymax
-        elif max_y_elements(0) == ymax(0)
-            if max_y_elements(1) > ymax(1)
-                max_y_elements = ymax
-            elif max_y_elements(1) == ymax(1)
-                if max_y_elements(2) > ymax(2)
-                    max_y_elements = ymax
-
-     #Min Y  
-    for min_y_elements in ycoords:
-        if min_y_elements(0) < ymin(0)
-            min_y_elements = ymin
-        elif min_y_elements(0) == ymin(0)
-            if min_y_elements(1) > ymin(1)
-                min_y_elements = ymin
-            elif min_y_elements(1) == ymin(1)
-                if min_y_elements(2) > ymin(2)
-                    min_y_elements = ymin
+    xmin = minima(xcoords)
+    xmax = maxima(xcoords)
+    ymin = minima(ycoords)
+    ymax = maxima(ycoords)
+    print ''
 
 
+
+    # print type(xmin)
+    # print xmin
+    # print xmin[0].__class__
+    # print xmin[0].num
+    print ''
     #DOING TEH MAD MATHZ FOR T3H DISTANCE...DAWG
-    for x in range(0,2)
-        xdist(x) = xmax(x) - xmin(x)
-    for y in range(0,2)
-        ydist(y) = ymax(y) - ymin(y)
+    for x in range(0,3):
+        xdist.append(ratioVal(xmax[x]) - ratioVal(xmin[x]))
+    for y in range(3):
+        ydist.append(ratioVal(ymax[y]) - ratioVal(ymin[y]))
 
     #DOING MORE OF DE MAD MATHZ...HOMEDAWG
-    for x2 in range(0,2)
-        xcenter(x2) = xmin(x2) + xdist(x2)/2
-    for y2 in range (0,2)
-        ycenter(y2) = ymin(y2) + ydist(y2)/2
+    for x2 in range(3):
+        xcenter.append(ratioVal(xmin[x2]) + xdist[x2]/2)
+    for y2 in range (3):
+        ycenter.append(ratioVal(ymin[y2]) + ydist[y2]/2)
+    print xmax
+    print xmin
+    #not yet returning the list of coordinates
+    masta = [xdist, ydist, xcenter, ycenter]
 
-mastalist = [coords, xdist, ydist, xcenter, ycenter]
-
-return mastalist
+    return masta
 
 if __name__ == '__main__':
-    coords = main1()
-    print mastalist
-
+    masta = main1()
+    print masta

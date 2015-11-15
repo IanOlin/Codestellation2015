@@ -66,6 +66,7 @@ class Ratio:
         self.num = num
         self.den = den
 
+
     def __repr__(self):
         self.reduce()
         if self.den == 1:
@@ -83,4 +84,3 @@ class Ratio:
         if div > 1:
             self.num = self.num // div
             self.den = self.den // div
-
