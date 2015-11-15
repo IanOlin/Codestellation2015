@@ -22,7 +22,7 @@ import getopt
 import logging
 import timeit
 from exifread.tags import DEFAULT_STOP_TAG, FIELD_TYPES
-from exifread import process_file, exif_log, __version__
+from exifread import process_file, exif_log, __version__, Ratio
 
 logger = exif_log.get_logger()
 
@@ -147,14 +147,42 @@ def main1():
     #each element of coords is separated into separate s of longitude and latitudes
     for elements in coords:
         tempcoords = elements
-        #print tempcoords
+        print tempcoords
         #print type(elements[0])
         xcoords.append(tempcoords[0])
         ycoords.append(tempcoords[1])
-        print tempcoords[0]
 
     def ratioVal(x):
         return float(x.num)/x.den
+
+    def convertSecs(latOrLong):
+        return latOrLong[0]*3600 + latOrLong[1]*60 + latOrLong[2]
+    def convertSecsInstance(latOrLong):
+        return ratioVal(latOrLong[0])*3600 + ratioVal(latOrLong[1])*60 + ratioVal(latOrLong[2])
+
+    def renormalizeVals(latOrLong):
+        val = latOrLong
+        if (val[2].num<0) != (val[2].den<0):
+            newNum = abs(val[2].den) - abs(val[2].num) #1+(-numerator)
+            newNumPrev = val[1].num - val[1].den #numerator - 1
+            val[2] = Ratio(newNum, abs(val[2].den))
+            val[1] = Ratio(newNumPrev, val[1].den)
+        elif (ratioVal(val[2])>=60):
+            num1 = val[2].num
+            den1 = val[2].den
+            val[2] = Ratio(num1%(60*den1), den1)
+            val[1] = Ratio((num1/(60*den1))*val[1].den + val[1].num*den1, den1*val[1].den)
+        if (val[1].num<0) != (val[1].den<0):
+            newNum = abs(val[1].den) - abs(val[1].num) #1+(-numerator)
+            newNumPrev = val[0].num - val[0].den #numerator - 1
+            val[1] = Ratio(newNum, abs(val[1].den))
+            val[0] = Ratio(newNumPrev, val[0].den)
+        elif (ratioVal(val[1])>=60):
+            num1 = val[1].num
+            den1 = val[1].den
+            val[1] = Ratio(num1%(60*den1), den1)
+            val[0] = Ratio((num1/(60*den1))*val[0].den + val[0].num*den1, den1*val[0].den)
+        return val
 
     def minima(coordArr):
         ymin = coordArr[0].values
@@ -190,7 +218,6 @@ def main1():
     xmax = maxima(xcoords)
     ymin = minima(ycoords)
     ymax = maxima(ycoords)
-    print ''
 
 
 
@@ -200,7 +227,7 @@ def main1():
     # print xmin[0].num
     print ''
     #DOING TEH MAD MATHZ FOR T3H DISTANCE...DAWG
-    for x in range(0,3):
+    for x in range(3):
         xdist.append(ratioVal(xmax[x]) - ratioVal(xmin[x]))
     for y in range(3):
         ydist.append(ratioVal(ymax[y]) - ratioVal(ymin[y]))
@@ -210,8 +237,52 @@ def main1():
         xcenter.append(ratioVal(xmin[x2]) + xdist[x2]/2)
     for y2 in range (3):
         ycenter.append(ratioVal(ymin[y2]) + ydist[y2]/2)
-    print xmax
-    print xmin
+
+    # normalize axes for coordinates
+    print 'Top left corner of the square to print out'
+    #calculate the seconds in the distances, for comparison
+    xdist1 = convertSecs(xdist)
+    ydist1 = convertSecs(ydist)
+    length = xdist1 if xdist1 > ydist1 else ydist1
+    border = length/10
+    tlLat = [xmin[0], xmin[1], Ratio(xmin[2].num - xmin[2].den*border, xmin[2].den)]
+    tlLat = renormalizeVals(tlLat)
+
+    tlLong = [ymin[0], ymin[1], Ratio(ymin[2].num - ymin[2].den*border, ymin[2].den)]
+    tlLong = renormalizeVals(tlLong)
+
+    print 'latitude: ', tlLat
+    print 'longitude: ', tlLong
+
+    print ''
+    print 'Bottom right corner of the square to print out'
+
+    brLat = [xmin[0], xmin[1], Ratio(xmin[2].num + xmin[2].den*border*2 + length*xmin[2].den, xmin[2].den)]
+    brLat = renormalizeVals(brLat)
+
+    brLong = [ymin[0], ymin[1], Ratio(ymin[2].num + ymin[2].den*border*2 + length*ymin[2].den, ymin[2].den)]
+    brLong = renormalizeVals(brLong)
+
+    print 'latitude: ', brLat
+    print 'longitude: ', brLong
+
+    print ''
+
+    print 'Edge len in secs', length+border*2
+
+    print ''
+
+    xminsec = convertSecsInstance(tlLat)
+    yminsec = convertSecsInstance(tlLong)
+    for elements in coords:
+        print 'Normalized Coordinate: x, y'
+        print (convertSecsInstance(elements[0].values)-xminsec)/(length+border*2)
+        print (convertSecsInstance(elements[1].values)-yminsec)/(length+border*2)
+        print ''
+
+
+
+
     #not yet returning the list of coordinates
     masta = [xdist, ydist, xcenter, ycenter]
 
@@ -219,4 +290,4 @@ def main1():
 
 if __name__ == '__main__':
     masta = main1()
-    print masta
+    #print masta
